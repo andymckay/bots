@@ -54,13 +54,13 @@ def setup(phenny):
                 avg = sum(num) / len(num)
                 if avg < v[0] or avg > v[1]:
                     phenny.msg('#amo-bots', format(k, num)) 
-            time.sleep(120)
+            time.sleep(300)
 
     targs = (phenny,)
     t = threading.Thread(target=monitor, args=targs)
     t.start() 
 
-_limits = {'200':[750, 2000], '500':[0, 2], '403':[0, 1]}
+_limits = {'200':[750, 2000], '500':[0, 10], '403':[0, 1]}
 _input = ['200', '301', '302', '403', '404', '405', '500']
 
 def graphite(phenny, inp):

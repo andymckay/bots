@@ -7,21 +7,20 @@ try:
 except ImportError:
     import simplejson as json
 
-url = 'http://amckay-arecibo.khan.mozilla.org/feed/wsey5twu5tqo456ql5uyqhs5tytkqrytqaugffug/json/?domain=%s'
-view_url = 'http://amckay-arecibo.khan.mozilla.org/view/'
-list_url = 'http://amckay-arecibo.khan.mozilla.org/list/?period=today&domain='
+url = 'http://arecibo1.dmz.sjc1.mozilla.com/feed/arecibo-mozilla-private-account/json/?domain=%s'
+view_url = 'http://arecibo1.dmz.sjc1.mozilla.com/view/'
+list_url = 'http://arecibo1.dmz.sjc1.mozilla.com/list/?period=today&domain='
 
-domains = ['addons.allizom.org',]
+domains = ['addons.mozilla.org']
 
-def _pull(domain, last):
+def _pull(domain, last=0):
     data = json.loads(urllib.urlopen(url % domain).read())
-    if last:
-        data = [ row for row in data if int(row['pk']) > int(last)]
+    data = [ row for row in data if int(row['pk']) > int(last)]
     return data
     
 def pull(domain):
     data = _pull(domain, None)
-    if data:
+    if not data:
         return 'Sorry, no idea.'
     return format(data[0])
     
