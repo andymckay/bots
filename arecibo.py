@@ -1,25 +1,46 @@
 import time
 import threading
 from datetime import datetime
-import urllib
+import urllib2
 try:
     import json
 except ImportError:
     import simplejson as json
 
-url = 'http://arecibo1.dmz.sjc1.mozilla.com/feed/arecibo-mozilla-private-account/json/?domain=%s'
-view_url = 'http://arecibo1.dmz.sjc1.mozilla.com/view/'
-list_url = 'http://arecibo1.dmz.sjc1.mozilla.com/list/?period=today&domain='
+srv = 'https://arecibo-phx.mozilla.org'
+url = '%s/feed/arecibo-mozilla-private-account/json/?domain=%%s' % srv
+view_url = '%s/view/' % srv
+list_url = '%s/list/?period=today&domain=' % srv
 
 domains = ['addons.mozilla.org']
 
+pwd = open('/home/amckay/.pwd').read().strip()
+username = open('/home/amckay/.username').read().strip()
+
+
 def _pull(domain, last=0):
-    data = json.loads(urllib.urlopen(url % domain).read())
+    password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+
+    password_mgr.add_password(None, 'arecibo-phx.mozilla.org', username, pwd)
+
+    handler = urllib2.HTTPBasicAuthHandler(password_mgr)
+
+    # create "opener" (OpenerDirector instance)
+    opener = urllib2.build_opener(handler)
+
+    # use the opener to fetch a URL
+    data = opener.open(url % domain)
+
+    try:
+        data = json.loads(data.read())
+    except ValueError, e:
+        print "Error", e
+        return 
     data = [ row for row in data if int(row['pk']) > int(last)]
     return data
     
 def pull(domain):
-    data = _pull(domain, None)
+    data = _pull(domain, 0)
     if not data:
         return 'Sorry, no idea.'
     return format(data[0])
@@ -31,7 +52,7 @@ def format(data):
             view_url, data['pk'])
 
 def format_count(data, domain):
-    return '%s error(s) on %s at %s%s' % (len(data), domain, list_url, domain)
+    return '%s error(s) of type(s) %s on %s (source: %s)' % (len(data), ', '.join(sorted(list(set(str(d['fields']['type']) for d in data)))), domain, 'https://bit.ly/canook-amo')
 
 def setup(phenny):
     last = json.load(open('/home/amckay/.arecibo.last'))
